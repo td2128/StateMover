@@ -11,6 +11,7 @@ using namespace std;
 
 string module_name;
 
+// traverse function goes through all submodules (genblks) in a module
 void traverse (vpiHandle  mod_handle) {
 
 	vpiHandle mod_itr_handle;
@@ -82,13 +83,13 @@ void traverse (vpiHandle  mod_handle) {
  */
 PLI_INT32 csr_sim(p_cb_data cb_data)
 {
-	fstream fs;
+	fstream fs; // inout file
 	vpiHandle module_handle;
 	int error_code;
 	s_vpi_error_info error_info;
 	
 	s_cb_data cb_save, cb_restore, cb_init;
-	s_vpi_value cb_value_s, cb_value_r, cb_value_i;
+	s_vpi_value cb_value_s, cb_value_r, cb_value_i;// To read out a signal values with the given handle as an integer
 	s_vpi_time cb_time_s, cb_time_r, cb_time_i;
 	
 	char save_signal[100], restore_signal[100], init_signal[100]; //TODO more efficient way
@@ -109,8 +110,10 @@ PLI_INT32 csr_sim(p_cb_data cb_data)
 	fs.close();
 
 	// get a handle for save signal, and set the callback function save_state 
+	// cbValueChange calls a PLI application after a logic value change or strength value change on an expression or terminal
 	cb_save.reason = cbValueChange;
 #ifdef HARDWARE
+	// if hardware is defined, then the name of PLI routine to call the CB function is dump_simulation_state
 	cb_save.cb_rtn = dump_simulation_state;
 #else
 	cb_save.cb_rtn = save_state;
@@ -120,7 +123,8 @@ PLI_INT32 csr_sim(p_cb_data cb_data)
 	cb_save.time = &cb_time_s;
 	cb_time_s.type = vpiSuppressTime;
 	cb_value_s.format = vpiIntVal;
-	cb_save.user_data = NULL;
+	cb_save.user_data = NULL; // not needed by the routine
+	//&cb_save the addr of function cb_save
 	vpi_register_cb(&cb_save);
 
 	// get a handle for restore signal, and set the callback function restore_state 
@@ -155,6 +159,7 @@ PLI_INT32 csr_sim(p_cb_data cb_data)
 		vpi_printf( (char*)"  %s\n", error_info.message);
 
 	// traverse the design down from this module to create the state_element list
+	// t1 is the time before traverse, t2 is the time after traverse
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 	traverse (module_handle);
 	chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
