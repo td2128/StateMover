@@ -47,7 +47,7 @@ string bin2hex(const string &s){
     return out;
 }
 
-void restore_init_state()
+void restore_init_state() //恢复起始状态
 {
 	s_vpi_value restored_value;
 	restored_value.format = vpiHexStrVal;
@@ -57,6 +57,7 @@ void restore_init_state()
 	for (list<state_element>::iterator it=state_elem_list.begin(); it != state_elem_list.end(); ++it) {
 
 		restored_value.value.str = (char*) malloc((it->elem_size + 1) * sizeof(char));
+		// copy string from elem_init_value to restored_value
 		strcpy(restored_value.value.str, it->elem_init_value);
 		vpi_put_value(it->elem_handle, &restored_value, NULL, vpiNoDelay);
 
@@ -64,7 +65,7 @@ void restore_init_state()
 
 }
 
-PLI_INT32 save_init_state(p_cb_data cb_data)
+PLI_INT32 save_init_state(p_cb_data cb_data) // 保存起始状态
 {
 	s_vpi_value current_value;
 	current_value.format = vpiHexStrVal;
@@ -84,7 +85,7 @@ PLI_INT32 save_init_state(p_cb_data cb_data)
 	return 0;
 }
 
-void corrupt_state()
+void corrupt_state() // 所有值为 X
 {
 	s_vpi_value corrupted_value;
 	corrupted_value.format = vpiHexStrVal;
@@ -103,7 +104,7 @@ void corrupt_state()
 
 }
 
-PLI_INT32 save_state(p_cb_data cb_data)
+PLI_INT32 save_state(p_cb_data cb_data) // 保存状态
 {
 	s_vpi_value current_value;
 	current_value.format = vpiHexStrVal;
@@ -135,7 +136,7 @@ PLI_INT32 save_state(p_cb_data cb_data)
 	return 0;
 }
 
-PLI_INT32 restore_state(p_cb_data cb_data)
+PLI_INT32 restore_state(p_cb_data cb_data) //恢复状态
 {
 	s_vpi_value restored_value;
 	restored_value.format = vpiHexStrVal;
@@ -158,9 +159,9 @@ PLI_INT32 restore_state(p_cb_data cb_data)
 
 PLI_INT32 restore_hardware_state(p_cb_data cb_data)
 {
-	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now(); // 开始计时
 
-	fstream fs;
+	fstream fs; // 文件
 	string register_name;
 	string register_value;
 	s_vpi_value restored_value;
@@ -183,7 +184,7 @@ PLI_INT32 restore_hardware_state(p_cb_data cb_data)
 	while(true) {
 		// Get the register name from the dump file
 		fs >> register_name;
-		if (fs.eof())
+		if (fs.eof()) // 判断是否为空文件
 			break;
 
 		// The dump file has the following format: some_module/*/reg_name
@@ -261,7 +262,8 @@ PLI_INT32 dump_simulation_state(p_cb_data cb_data)
 		// The dump file has the following format: some_module/*/reg_name
 		register_name = se.first;
 		
-		size_t pos = module_name.find("/", module_name.find("/") + 1); // 2nd / position
+		// size_t 可以展示任何文件的大小，单位为 Bytesss
+		size_t  = module_name.find("/", module_name.find("/") + 1); // 2nd / position
 		register_name = register_name.substr(pos+1);
 
 		// Get the register value from the simulation
